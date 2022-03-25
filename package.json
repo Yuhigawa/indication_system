@@ -4,11 +4,16 @@
     "scripts": {
         "start": "node build/server.js",
         "build": "tsc -p .",
-        "b:s": "yarn build && yarn start"
+        "b:s": "yarn run build && yarn run start",
+        "auto": "npx tsc-watch --onsuccess \"node build/server.js\""
     },
     "dependencies": {
+        "axios": "^0.26.1",
         "cors": "^2.8.5",
-        "express": "*"
+        "dotenv": "^16.0.0",
+        "express": "*",
+        "mongodb": "^4.4.1",
+        "mongoose": "^6.2.8"
     },
     "devDependencies": {
         "@types/cors": "^2.8.12",
