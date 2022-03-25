@@ -1,8 +1,10 @@
 import db from '../config/database';
 
 const userSchema = new db.Schema({
-    _id: {
+    user_id: {
         type: Number,
+        required: true,
+        unique: true
     },
     name: {
         type: String,
@@ -26,6 +28,6 @@ const userSchema = new db.Schema({
         type: Date,
         default: Date.now()
     }
-}, { _id: false })
+});
 
 export default db.model('User', userSchema);
