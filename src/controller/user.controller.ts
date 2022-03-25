@@ -7,18 +7,25 @@ import { getUserById } from './service/activecampaign';
 
 const createIndication = async(id: Number, req: Request, res: Response) => {
     try {
-        const response = await getUserById(id);
-        if( response['status'] != 200 ) throw Error;
+        const object_response = await getUserById(id);
+        const object_keys = Object.keys(object_response);
+        
+        if( !object_keys.includes('data') ) {
+            console.log(object_keys)
+            console.log(object_keys.includes('data'))
+            throw Error;
+        };
 
-        const user = await User.create({
-            _id: id,
-            name: response['data'].contact.firtName,
-            email: response['data'].contact.email,
-            link: crypto.createHash('sha256').update(req.params.id).digest('hex')
+        const user_created = await User.create({
+            user_id: id,
+            name: object_response['data'].contact.firstName,
+            email: object_response['data'].contact.email,
+            link: crypto.createHash('sha256').update(req.params.id).digest('hex'),
         });
 
-        return res.status(201).send({ user })
+        return res.status(201).send({data: 'created'})
     } catch (error) {
+        console.log(error);
         return res.status(400).send({ error: 'Registration failed' })
     }
 };
@@ -28,23 +35,23 @@ const isUserCreated = async(req: Request, res: Response) => {
     const responseId = await searchUser(id);
 
     if( responseId['status'] == 404 ) {
-        await createIndication(id, req, res);
+        return await createIndication(id, req, res);
     }
 
-    // const response = await getUserData(id);
+    // const userIndication: Number = await getUserIndications(id);
 
-    const userIndication: Number = await getUserIndications(id);
+    const data_response = {
+        'indications': responseId['data'].indications,
+        'name': responseId['data'].name
+    }
 
-    res.status(200).send({})
-}
-
-const getUserData = async() => {
-    return;
+    return res.status(200).send(data_response);
 }
 
 const searchUser = async(id: Number) => {
     try {
-        const user = await User.findById(id).exec()
+        const user = await User.findOne({ user_id: id }).exec()
+        // const user = await User.findById(id).exec()
         if( !user ) throw Error;
 
         return {status: 200, data: user}
@@ -57,9 +64,9 @@ const searchUserRoute = async(req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id);
 
-        const user = await User.findById(id).exec()
+        const user = await User.findOne({user_id: id}).exec()
+        // const user = await User.findById(id).exec()
 
-        console.log(id, user)
         if( !user ) throw Error;
         
         return res.status(200).send({ user })
@@ -68,12 +75,25 @@ const searchUserRoute = async(req: Request, res: Response) => {
     }
 }
 
-const getUserIndications = async(userId: Number) => {
-    return 1;
-}
+import { getUserIpAdress } from './ip.controller';
 
 const increaseIndication = async(req: Request, res: Response) => {
-    return null;
+    const query = { link: req.params.hashkey}
+    const user_response = await User.findOne( query );
+    
+    if( !user_response ) return res.status(404).send({error: 'indication invalid'});
+
+    const user_not_registed = await getUserIpAdress(req, res);
+    const user_ip_keys = Object.keys(user_not_registed);
+
+    if( user_ip_keys.length !== 1 ) {
+        return res.redirect('https://dominnebpo.com.br')
+    }
+
+    let indication_counter: number = parseInt(user_response['indications']) + 1
+    let res_update = await User.findOneAndUpdate( query, { indications: indication_counter } )
+    
+    return res.redirect('https://dominnebpo.com.br')
 }
 
-export { createIndication, increaseIndication, searchUserRoute, isUserCreated };
+export { increaseIndication, searchUserRoute, isUserCreated, getUserIpAdress };
