@@ -3,6 +3,15 @@ import axios, { AxiosError, AxiosResponse,  } from 'axios';
 import dotenv from "dotenv";
 dotenv.config();
 
+interface Provider {
+    status: number,
+    data?: any,
+    error?: any,
+}
+
+// let countryProviders: Array<Provider>;
+// let allProviders: Array<Provider>;
+
 const _trycatchBlock = async(method: any, uri: String, body?: Object, params?: Object) => {
     let headers = {
         'Api-Token': process.env.AC_TOKEN
@@ -10,14 +19,17 @@ const _trycatchBlock = async(method: any, uri: String, body?: Object, params?: O
 
     try {
         let res = await method(uri, { headers: headers });
-        return {status: 200, data: res.data};
+
+        let response: Provider = {status: 200, data: res.data};
+        return response;
     } catch (error: any) {
-        return {status: 404, data: error}
+        let response: Provider = {status: 404, data: error};
+        return response;
     }
 }
 
 
-const getUserById = async(id: Number) => {
+const getUserById = async(id: Number): Promise<Provider> => {
     const uri = `${process.env.AC_URL}/contacts/${id}`;
     const method = axios.get;
 
